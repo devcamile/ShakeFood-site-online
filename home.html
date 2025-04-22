@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShakeFood - Início</title>
+  <style>
+    /* Fundo com imagem e gradiente */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      background: url('imagens/milkshake.jpg') no-repeat center center fixed, linear-gradient(-45deg, #ff6f61, #ffcc70, #ff94c2, #ffe1a8);
+      background-size: cover, 400% 400%;
+      animation: gradient 15s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 1s forwards;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      color: #ff6f61;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #ff6f61;
+      outline: none;
+      box-shadow: 0 0 8px rgba(255, 111, 97, 0.4);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: #ff6f61;
+      border: none;
+      color: white;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #e65c50;
+      transform: scale(1.05);
+    }
+
+    /* Ajustes de responsividade */
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px 20px;
+      }
+
+      h2 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>🍓 ShakeFood</h2>
+    <p>Informe seus dados para começar o pedido:</p>
+  
+    <form id="form-pedido" onsubmit="return fazerPedido(event)">
+      <input type="text" id="nome-cliente" name="nome" placeholder="Seu nome" required>
+      <input type="tel" id="celular-cliente" name="celular" placeholder="Número de celular" required>
+      <button type="submit">Fazer Pedido</button>
+    </form>
+    
+  </div>
+
+  <script>
+    function fazerPedido(event) {
+      event.preventDefault();  // Impede o envio padrão do formulário
+    
+      const nome = document.getElementById('nome-cliente').value.trim();
+      const celular = document.getElementById('celular-cliente').value.trim();
+    
+      if (nome === '' || celular === '') {
+        alert("Por favor, preencha seu nome e número de celular!");
+        return false;
+      }
+    
+      // Salva os dados no localStorage
+      localStorage.setItem('nomeCliente', nome);
+      localStorage.setItem('celularCliente', celular);
+    
+      // Redireciona para a página de boas-vindas
+      window.location.href = "aguarde.html";
+    
+      return false;
+    }
+  </script>
+
+</body>
+</html>

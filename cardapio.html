@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShakeFood - Cardápio</title>
+  <link rel="stylesheet" href="cardapio.css">
+</head>
+<body>
+
+  <h2>Cardápio</h2>
+  <h3 id="titulo-opcao" style="text-align:center; display: none; font-size: 22px; font-weight: 600; margin-top: 15px; color: #333;"></h3>
+
+  
+  <div class="produto-selector" id="produto-selector">
+    <button id="milkshake-btn">Milkshake</button>
+    <button id="acai-btn">Açaí</button>
+    <button id="sorvete-btn">Sorvete</button>
+  </div>
+  
+  <h3 id="titulo-opcao" style="text-align:center; display: none; font-size: 28px; font-weight: bold; margin-top: 20px; color:rgb(0, 0, 0);"></h3>
+
+
+
+  <div id="produtos-list" style="display: none;"></div>
+
+  <div id="carrinho">
+    <h3>Carrinho</h3>
+    <ul id="itens-carrinho"></ul>
+    <p><strong>Total:</strong> R$ <span id="total-carrinho">0.00</span></p>
+    <button id="confirmar-pedido-btn">Confirmar Pedido</button>
+  </div>
+
+  <button id="toggle-carrinho-btn">
+    Seu Carrinho <span id="badge">0</span>
+  </button>
+
+  <div class="notification" id="notification">Produto adicionado ao carrinho!</div>
+
+  <!-- Modal Pagamento -->
+  <div id="modal-pagamento" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 999;">
+    <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; width: 90%; max-width: 400px;">
+      <h3>Escolha a forma de pagamento</h3>
+      <button id="pagamento-pix" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 6px; margin: 10px;">Pix</button>
+      <button id="pagamento-dinheiro" style="background-color: #FF9800; color: white; padding: 10px 20px; border: none; border-radius: 6px; margin: 10px;">Dinheiro</button>
+      <button id="cancelar-pagamento" style="background-color: #f44336; color: white; padding: 8px 16px; border: none; border-radius: 6px; margin-top: 20px;">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal Final -->
+  <div id="mensagem-final" style="display: none;">
+    <div class="box">
+      <h2 style="color: #4CAF50;">✅ Pedido Confirmado!</h2>
+      <p style="font-size: 18px;">🧑‍🍳 Está sendo preparado...</p>
+      <p style="font-size: 18px;">👀 Acompanhe seu pedido!</p>
+      <button onclick="fecharMensagemFinal()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const cardapio = {
+      milkshake: {
+        precoBase: 10,
+        sabores: ['Chocolate', 'Morango', 'Baunilha', 'Coco', 'Flocos', 'Maracujá'],
+        adicionais: ['Nutella + Chantilly', 'Chantilly + calda de morango', 'Calda extra + gotas de chocolate']
+      },
+      acai: {
+        precoBase: 12,
+        sabores: ['Tradicional', 'Com Banana', 'Com Morango'],
+        adicionais: ['Leite condensado', 'Calda de Chocolate', 'Mel', 'Calda de Maçã Verde', 'Morango', 'Abacaxi', 'Kiwi', 'Banana']
+      },
+      sorvete: {
+        precoBase: 8,
+        sabores: ['Napolitano', 'Flocos', 'Chocolate'],
+        adicionais: ['Casquinha', 'Chocolate ralado', 'Confete']
+      }
+    };
+  
+    let carrinho = [];
+    let totalItems = 0;
+  
+    function atualizarTotalCarrinho() {
+      let total = 0;
+      carrinho.forEach(item => {
+        total += item.preco;
+      });
+      document.getElementById('total-carrinho').textContent = total.toFixed(2);
+      document.getElementById('badge').textContent = carrinho.length;
+    }
+  
+    function atualizarCardapio(tipo) {
+      const produtosList = document.getElementById('produtos-list');
+      const selector = document.getElementById('produto-selector');
+      const tituloOpcao = document.getElementById('titulo-opcao');
+  
+      selector.style.display = 'none';
+  
+      tituloOpcao.textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+      tituloOpcao.style.display = 'block';
+  
+      produtosList.innerHTML = '';
+      produtosList.style.display = 'block';
+  
+      const item = document.createElement('div');
+      item.classList.add('cardapio-item');
+  
+      const sabores = cardapio[tipo].sabores;
+      const adicionais = cardapio[tipo].adicionais;
+  
+      let saboresHTML = '<div class="sabores-container"><h3>Sabores</h3>';
+      sabores.forEach((sabor, index) => {
+        saboresHTML += `<label><input type="radio" name="sabor" value="${sabor}" ${index === 0 ? 'checked' : ''}> ${sabor}</label><br>`;
+      });
+      saboresHTML += `</div>`;
+  
+      let adicionaisHTML = '<div class="adicionais-container"><h4>Adicionais</h4>';
+      adicionais.forEach(adicional => {
+        adicionaisHTML += `<label><input type="checkbox" class="adicional" value="${adicional}"> ${adicional}</label><br>`;
+      });
+      adicionaisHTML += `</div>`;
+  
+      item.innerHTML = `${saboresHTML}${adicionaisHTML}<button type="button" class="adicionar-carrinho">Adicionar ao Carrinho</button>`;
+      produtosList.appendChild(item);
+  
+      
+  
+      item.querySelector('.adicionar-carrinho').addEventListener('click', () => {
+        const saborSelecionado = item.querySelector('input[name="sabor"]:checked').value;
+        const adicionaisSelecionados = [];
+        item.querySelectorAll('.adicional:checked').forEach(ad => adicionaisSelecionados.push(ad.value));
+        const precoTotal = cardapio[tipo].precoBase + (adicionaisSelecionados.length * 2);
+  
+        carrinho.push({ nome: `${tipo} - ${saborSelecionado}`, adicionais: adicionaisSelecionados, preco: precoTotal });
+  
+        const li = document.createElement('li');
+        li.textContent = `${tipo} - ${saborSelecionado}${adicionaisSelecionados.length ? ' + ' + adicionaisSelecionados.join(', ') : ''} - R$ ${precoTotal.toFixed(2)}`;
+        document.getElementById('itens-carrinho').appendChild(li);
+  
+        atualizarTotalCarrinho();
+  
+        const notification = document.getElementById('notification');
+        notification.style.display = 'block';
+        setTimeout(() => { notification.style.display = 'none'; }, 3000);
+      });
+    }
+  
+    document.getElementById('toggle-carrinho-btn').onclick = () => {
+      const carrinhoEl = document.getElementById('carrinho');
+      carrinhoEl.style.display = carrinhoEl.style.display === 'none' ? 'block' : 'none';
+    };
+  
+    document.getElementById('confirmar-pedido-btn').onclick = () => {
+      if (carrinho.length === 0) {
+        alert('Seu carrinho está vazio!');
+        return;
+      }
+      document.getElementById('modal-pagamento').style.display = 'flex';
+    };
+  
+    document.getElementById('pagamento-pix').onclick = () => finalizarPedido('Pix');
+    document.getElementById('pagamento-dinheiro').onclick = () => finalizarPedido('Dinheiro');
+    document.getElementById('cancelar-pagamento').onclick = () => {
+      document.getElementById('modal-pagamento').style.display = 'none';
+    };
+  
+    function finalizarPedido(forma) {
+      document.getElementById('modal-pagamento').style.display = 'none';
+      document.getElementById('mensagem-final').style.display = 'flex';
+      carrinho = [];
+      totalItems = 0;
+      document.getElementById('itens-carrinho').innerHTML = '';
+      document.getElementById('total-carrinho').textContent = '0.00';
+      document.getElementById('badge').textContent = '0';
+      document.getElementById('carrinho').style.display = 'none';
+    }
+  
+    window.onload = function () {
+      const nome = localStorage.getItem('nome');
+      if (nome) {
+        document.getElementById('saudacao').textContent = `Bem-vindo(a), ${nome}!`;
+      }
+  
+      document.getElementById('milkshake-btn').onclick = () => atualizarCardapio('milkshake');
+      document.getElementById('acai-btn').onclick = () => atualizarCardapio('acai');
+      document.getElementById('sorvete-btn').onclick = () => atualizarCardapio('sorvete');
+  
+    
+    };
+  
+    // ✅ Função que fecha o modal de pedido confirmado
+    function fecharMensagemFinal() {
+      document.getElementById('mensagem-final').style.display = 'none';
+    }
+  </script>
+  
